@@ -1,8 +1,8 @@
 # LoL Worlds Predictor
 
-A notebook-based project for estimating League of Legends game win probabilities from chronological match history. It combines global Elo, domestic-pool Elo, international pool-strength calibration, and logistic regression, with an initial Monte Carlo series example.
+A project for estimating League of Legends game win probabilities from chronological match history. Notebooks handle analysis and data preparation; reusable Python code and a local browser simulator consume the exported model and rating state. The model combines global Elo, domestic-pool Elo, international pool-strength calibration, and logistic regression.
 
-The current implementation evaluates individual games as history unfolds. A complete tournament forecasting system, historical gold/objective features, periodic model retraining, and resumable state are still planned.
+The current implementation evaluates individual games as history unfolds and includes an eight-team quarterfinal-to-title simulator with best-of-five series, actual-game updates, and session save/resume. Public deployment, historical gold/objective features, periodic model retraining, and general ingestion checkpoints are still planned.
 
 **Evaluation status:** the saved test period has already been inspected and has influenced development. Its results are development evidence, not an untouched final benchmark or a forecast frozen before a tournament.
 
@@ -10,6 +10,7 @@ The current implementation evaluates individual games as history unfolds. A comp
 
 - [What is implemented](#what-is-implemented)
 - [Setup and execution](#setup-and-execution)
+- [Interactive knockout simulator](#interactive-knockout-simulator)
 - [Data and cleaning](#data-and-cleaning)
 - [How the models work](#how-the-models-work)
 - [Chronological evaluation](#chronological-evaluation)
@@ -32,6 +33,8 @@ Each notebook contains an overview and numbered explanations before its working 
 | [06 — International model](notebooks/06_international_model.ipynb) | Fit separate local-strength and pool-strength coefficients, select a blend on validation, and refit for evaluation. | Model bundle, selection record, predictions, metrics, coverage, calibration. |
 
 The modeling path is **01 → 02 → 03 → 04 → 06**. Notebook 05 needs notebook 02 and is an independent learning exercise; notebook 06 does not consume its simulations.
+
+The application is separate from those notebooks: [simulator guide](docs/simulator.md). It requires supplied teams and a bracket for real use, and includes a clearly hypothetical demonstration.
 
 ## Setup and execution
 
@@ -70,6 +73,27 @@ Get-ChildItem .\notebooks\*.ipynb | Sort-Object Name | ForEach-Object {
 ```
 
 Execution regenerates processed CSVs, models, reports, and notebook outputs. Keep any snapshot you want to compare before rerunning. Changing raw files can also change the 60%/80% timestamp boundaries; downstream notebooks reuse the boundaries from that particular baseline run.
+
+## Interactive knockout simulator
+
+Start an explicitly hypothetical eight-team demonstration:
+
+```powershell
+.\.venv\Scripts\python.exe -m src.simulator_app --demo
+```
+
+Open **http://127.0.0.1:8501**. To use the trained model after generating the notebook outputs:
+
+```powershell
+.\.venv\Scripts\python.exe -m src.export_artifact --cutoff 2026-10-27T00:00:00Z --output models/simulator_artifact.json
+.\.venv\Scripts\python.exe -m src.simulator_app --artifact models/simulator_artifact.json
+```
+
+The example cutoff is just after the last saved source game, not an asserted pre-quarterfinal date. For a real tournament forecast, supply its actual cutoff and bracket. Export rejects models trained at or after the cutoff, reconstructs state using only earlier games, and checks it against the notebook features.
+
+Enter four ordered quarterfinal pairs: QF1/QF2 feed SF1, QF3/QF4 feed SF2, then the semifinal winners meet in the final. Every series is best-of-five. Simulations start from entered scores and hold matchup probabilities fixed; only actual games update ratings. The interface reports advancement/title chances and fallback, accepts actual game winners, and supports undo and session download/resume.
+
+This is a loopback-only local prototype. Public hosting remains future work. See [the simulator guide](docs/simulator.md) for model packages, cutoff rules, result updates, assumptions, tests, and current verification limits.
 
 ## Data and cleaning
 
@@ -266,7 +290,10 @@ results/
   regional/                      Raw local/calibrated Elo comparisons
   international_model/           Logistic/blend selection and evaluation
   execution/                     Recorded notebook execution summary
-src/__init__.py                  Placeholder for future reusable modules
+src/                            Prediction, cutoff export, tournament engine, local app
+web/simulator.html              Browser interface for the local simulator
+tests/                          Synthetic simulator and HTTP integration tests
+docs/simulator.md               Simulator usage and assumptions
 requirements.txt                 Current, unpinned Python dependencies
 data/raw/                        Source CSVs; mostly ignored by Git
 data/processed/                  Generated histories and audits; ignored
@@ -289,7 +316,7 @@ CSV filenames without a directory in this table are under `data/processed/`. Old
 
 The [recorded execution](results/execution/notebook_run.json) reports successful execution of **84 working code cells across six notebooks**. Subsequent Markdown explanations preserved code, saved outputs, and execution counts. Ordinary manual or headless notebook execution does not automatically refresh this separate execution-summary file.
 
-Validation currently lives in notebook assertions and labeled synthetic fixtures. There is no populated standalone test suite or packaged production predictor yet. Checks include:
+Analysis validation lives in notebook assertions and labeled synthetic fixtures. The simulator also has standalone `unittest` mechanics and HTTP integration tests; run them with `.\.venv\Scripts\python.exe -m unittest discover -s tests -v`. Checks include:
 
 - Required fields, binary outcomes, distinct opponents, one winner, and duplicate identities.
 - Elo probability symmetry, initial ratings, rating conservation, and carryover across years.
@@ -297,8 +324,10 @@ Validation currently lives in notebook assertions and labeled synthetic fixtures
 - Zero-sum pool transfers and excluded updates for unknown homes, same-pool games, disabled flags, and nonfinite strengths.
 - Exact evaluation population alignment, fallback coverage, baseline metric reproduction, and persisted global-model prediction equivalence.
 - Monte Carlo frequencies checked against exact illustrative probabilities.
+- Best-of-five partial scores, fixed advancement, eliminated teams, seeded bracket reproducibility, and actual-result replay/undo/save/resume.
+- Portable model/state export checked against notebook history and final state, with model-training cutoff and source-fingerprint validation.
 
-International model metadata records input-file SHA-256 hashes, scikit-learn version, feature names, split dates, training counts, fixed settings, and blend selection. These improve traceability but do not replace a full dependency lock or source-data archive. Updating data or dependencies can change the saved snapshot, and exact checkpoint-resume equivalence has not been implemented.
+International model metadata records input-file SHA-256 hashes, scikit-learn version, feature names, split dates, training counts, fixed settings, and blend selection. These improve traceability but do not replace a full dependency lock or source-data archive. Simulator sessions replay against an exact artifact fingerprint; a general historical-ingestion checkpoint/resume system is not implemented.
 
 ## Limitations and next steps
 
@@ -308,9 +337,9 @@ The next milestones are:
 
 1. Review competition roles by year and strengthen team-identity and home-membership handling.
 2. Build historical gold/objective features using only earlier games, with explicit missingness and availability counts.
-3. Extract reusable state-update code and add periodic chronological retraining of logistic models.
-4. Implement checkpoint/resume equivalence and explicit duplicate/correction handling.
-5. Add cutoff-based, frozen pre-tournament forecasts, keeping them distinct from online evaluation.
-6. Expand series and tournament Monte Carlo using a supplied bracket and rules, or clearly labeled assumptions.
+3. Add periodic chronological retraining of logistic models on top of the reusable prediction/state code.
+4. Extend bounded simulator session replay into general ingestion checkpoint/resume and historical correction handling.
+5. Validate cutoff-based forecasts on a later untouched period, distinct from the existing online development evaluation.
+6. Prepare public hosting and multi-user persistence for the local simulator. Real title forecasts require supplied participants, quarterfinal paths, and cutoff dates.
 
 The project currently provides an explained research workflow and saved development evidence. Official participants, competition identities, tournament rules, and final forecasting performance must not be inferred from the illustrative simulation or invented to fill missing inputs.

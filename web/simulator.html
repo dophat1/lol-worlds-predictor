@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Worlds knockout simulator</title>
+  <style>
+    :root{color-scheme:dark;--bg:#10151e;--panel:#192230;--ink:#edf2f9;--muted:#a9b9cc;--gold:#efd49a;--line:#334157;--blue:#83b7ed}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,sans-serif}main{max-width:1220px;margin:auto;padding:36px 26px 64px}
+    .eyebrow{color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:.16em}h1{font-size:clamp(28px,4vw,44px);line-height:1.15;margin:12px 0}h2{font-size:21px;margin:0 0 14px}h3{font-size:15px;margin:0 0 8px}p{margin:8px 0}.muted,small{color:var(--muted)}.notice{border-left:3px solid var(--gold);padding:10px 16px;background:#28271f;margin:22px 0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin-top:20px}.wide{grid-column:1/-1}.qfs{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pair{padding:14px;background:#121b28;border-radius:7px}
+    label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}input,select,button{font:inherit}input,select{width:100%;background:#0e1723;border:1px solid #465873;color:var(--ink);border-radius:6px;padding:10px}input:focus,select:focus{outline:2px solid var(--blue)}button{padding:10px 16px;border:1px solid #596b83;border-radius:6px;background:#263b55;color:var(--ink);cursor:pointer}button.primary{background:var(--gold);color:#17202b;border-color:var(--gold);font-weight:650}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.inline{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{display:flex;align-items:center;gap:8px}.check input{width:auto}.metrics{display:flex;gap:24px;flex-wrap:wrap;margin-top:15px}.metrics strong{font-size:22px;display:block;color:var(--gold)}
+    table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}th{font-size:12px;color:var(--muted);font-weight:500}td.num,th.num{text-align:right;white-space:nowrap}.table-wrap{overflow:auto}.bar{height:5px;background:#304157;border-radius:5px;margin-top:4px;min-width:75px}.fill{height:100%;background:var(--gold);border-radius:5px}.tag{display:inline-block;border:1px solid #65704e;color:#d2dbb0;padding:1px 7px;border-radius:20px;font-size:11px}.status{color:var(--blue);min-height:24px;margin-top:12px}.error{color:#ffb4a8}.hidden{display:none!important}details{margin-top:14px}summary{cursor:pointer;color:var(--muted)}a{color:var(--blue)}footer{margin-top:30px;color:var(--muted);font-size:13px}
+    @media(max-width:780px){.grid{grid-template-columns:1fr}.qfs{grid-template-columns:1fr}.card{padding:16px}main{padding:22px 14px}th,td{padding:9px 5px}}
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow">League of Legends · quarterfinals onward</div>
+  <h1>Every path to the title.</h1>
+  <p class="muted">Set an eight-team bracket, simulate best-of-five series, and update the outlook as actual games finish.</p>
+  <div id="notice" class="notice">Loading model snapshot…</div>
+  <div class="metrics"><div><strong>8 teams</strong>fixed knockout bracket</div><div><strong>Best of 5</strong>every series</div><div><strong id="actual-count">0</strong>actual games recorded</div></div>
+  <div id="message" class="status" role="status" aria-live="polite"></div>
+  <div class="grid">
+    <section class="card wide"><h2>01 · Your bracket</h2><p class="muted">QF1 + QF2 feed semifinal 1. QF3 + QF4 feed semifinal 2. The semifinal winners meet in the final.</p>
+      <form id="bracket-form"><label for="bracket-label">Tournament or scenario label</label><input id="bracket-label" required placeholder="Enter your event, or label a hypothetical scenario">
+        <datalist id="team-options"></datalist><div id="quarterfinals" class="qfs"></div>
+        <label class="check"><input type="checkbox" id="replace-results">Replace the bracket and clear any entered results</label>
+        <div class="actions"><button class="primary" type="submit">Save bracket & simulate</button><button type="button" id="download">Download session</button><button type="button" id="import-button">Resume from session</button><input id="import-file" type="file" accept=".json,application/json" hidden></div>
+      </form>
+    </section>
+    <section class="card"><h2>02 · Record an actual game</h2><p class="muted">Enter games chronologically. A series stops at three wins. Real outcomes update global Elo and eligible pool offsets; local Elo and model coefficients stay fixed.</p>
+      <form id="game-form"><label for="series">Series</label><select id="series" required></select><label for="winner">Winner of the next game</label><select id="winner" required></select><label for="timestamp">Game timestamp (your local time)</label><input id="timestamp" type="datetime-local" step="1" required>
+        <div class="actions"><button class="primary" type="submit" id="record">Record game & recalculate</button><button id="undo" type="button">Undo last game</button></div>
+      </form><details><summary>Entered games</summary><ol id="event-log"></ol></details>
+    </section>
+    <section class="card"><h2>03 · Run the remaining tournament</h2><p class="muted">Each simulation starts from the actual scores. Matchup probabilities stay constant during a run; imagined results never change the saved ratings.</p>
+      <div class="inline"><div><label for="simulations">Simulated tournaments</label><input id="simulations" type="number" min="100" max="1000000" step="100" value="100000"></div><div><label for="seed">Random seed</label><input id="seed" type="number" min="0" max="4294967295" value="2026"></div></div>
+      <div class="actions"><button class="primary" id="simulate">Simulate tournament</button></div><p id="run-info" class="muted">Save a bracket to begin.</p>
+      <details><summary>Model and data cutoff</summary><p id="cutoffs" class="muted"></p><p class="muted">The fitted model has been evaluated on a previously inspected development period. Tournament probabilities are model estimates, not guarantees.</p></details>
+    </section>
+    <section class="card wide"><h2>Title chances</h2><p class="muted">More simulations reduce sampling noise, not uncertainty in the underlying model.</p><div class="table-wrap"><table><thead><tr><th>Team</th><th class="num">Reach semifinal</th><th class="num">Reach final</th><th class="num">Win title</th><th class="num">MC s.e. (pp)</th></tr></thead><tbody id="chances"><tr><td colspan="5">No simulation yet.</td></tr></tbody></table></div><p id="coverage" class="muted"></p>
+    </section>
+    <section class="card wide"><h2>Bracket progress</h2><div class="table-wrap"><table><thead><tr><th>Series</th><th>Matchup</th><th>Actual score</th><th>Outlook</th></tr></thead><tbody id="progress"></tbody></table></div></section>
+  </div><footer>Local research prototype. Brackets and results are user supplied. No official participants, draw rules, or tournament identities are inferred. All rounds use the stated best-of-five assumption.</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);let current=null,busy=false;
+const pct=p=>(100*p).toFixed(2)+'%';
+const node=(tag,text,cls)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(cls)el.className=cls;return el};
+function message(text,error=false){$('message').textContent=text;$('message').className='status'+(error?' error':'')}
+async function api(path,payload){const options=payload===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)};const response=await fetch(path,options);const data=await response.json();if(!response.ok)throw new Error(data.error||'Request failed');return data}
+function localInput(date){return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,19)}
+for(let i=0;i<4;i++){const box=node('div',undefined,'pair');box.append(node('h3',`Quarterfinal ${i+1}`));for(let side=0;side<2;side++){const id=`team-${i}-${side}`,label=node('label',side===0?'Team A':'Team B');label.htmlFor=id;const input=node('input');input.id=id;input.setAttribute('list','team-options');input.required=true;input.placeholder='Choose a team from the snapshot';box.append(label,input)}$('quarterfinals').append(box)}
+function winners(){const found=current?.series.find(s=>s.series===$('series').value);$('winner').replaceChildren(node('option','Choose the actual game winner'));$('winner').options[0].value='';for(const team of found?.teams||[]){const option=node('option',team);option.value=team;$('winner').append(option)}}
+function render(data){current=data;const demo=data.kind==='hypothetical_demo';$('notice').textContent=demo?'Hypothetical demonstration: eight synthetic equal-strength teams. These are illustrative Elo probabilities, not predictions from the trained research model.':'Loaded trained research model. Supply the eight teams and quarterfinal bracket; no official bracket is assumed.';
+  $('actual-count').textContent=data.session?.events.length||0;$('team-options').replaceChildren(...data.teams.map(t=>{const o=node('option');o.value=t;return o}));
+  if(data.session){$('bracket-label').value=data.session.bracket.label;data.session.bracket.quarterfinals.forEach((pair,i)=>pair.forEach((team,s)=>{$(`team-${i}-${s}`).value=team}))}
+  $('replace-results').checked=false;const priorSeries=$('series').value;$('series').replaceChildren();for(const s of data.series.filter(s=>s.teams&&!s.winner)){const o=node('option',`${s.series} · ${s.teams[0]} ${s.score[0]}–${s.score[1]} ${s.teams[1]}`);o.value=s.series;$('series').append(o)}if([...$('series').options].some(o=>o.value===priorSeries))$('series').value=priorSeries;winners();$('record').disabled=!$('series').options.length;$('undo').disabled=!data.session?.events.length;
+  const last=data.session?.events.at(-1)?.timestamp;const minimum=new Date(Math.ceil(Math.max(Date.parse(data.cutoff),last?Date.parse(last):0)/1000)*1000);$('timestamp').min=localInput(minimum);$('timestamp').value=localInput(new Date(Math.ceil(Math.max(Date.now(),minimum.getTime())/1000)*1000));
+  $('cutoffs').textContent=`History cutoff (exclusive): ${data.cutoff}. Last source game: ${data.last_history_timestamp||'none — synthetic demo'}. Model trained through: ${data.model_trained_through||'not applicable — synthetic demo'}.`;
+  $('event-log').replaceChildren(...(data.session?.events||[]).map(e=>node('li',`${e.series}, game ${e.game_number}: ${e.winner} · ${e.timestamp}`)));$('progress').replaceChildren();for(const s of data.series){const row=node('tr');[s.series,s.teams?s.teams.join(' vs '):'Awaiting qualifying winners',s.score.join('–'),s.winner?`Advanced: ${s.winner}`:s.teams?`${s.teams[0]} wins series: ${pct(s.series_probability_a)}${s.fallback?' · global fallback':''}`:'Not yet determined'].forEach(text=>row.append(node('td',text)));$('progress').append(row)}
+}
+async function run(){const button=$('simulate');button.disabled=true;message('Simulating remaining games…');try{const result=await api('/api/simulate',{simulations:Number($('simulations').value),seed:Number($('seed').value)});$('chances').replaceChildren();for(const team of result.teams){const row=node('tr'),name=node('td',team.team);const bar=node('div',undefined,'bar'),fill=node('div',undefined,'fill');fill.style.width=pct(team.title_probability);bar.append(fill);name.append(bar);row.append(name);for(const value of [team.semifinal_probability,team.final_probability,team.title_probability])row.append(node('td',pct(value),'num'));row.append(node('td',(100*team.title_monte_carlo_se).toFixed(3),'num'));$('chances').append(row)}$('run-info').textContent=`${result.simulations.toLocaleString()} tournaments · seed ${result.seed} · ${current.session.events.length} actual games conditioned on.`;$('coverage').textContent=`${result.fallback_pairs.length} of 28 pairwise forecasts across the entered teams use global-logistic fallback. MC standard error measures sampling noise only, not model uncertainty.`;message('Simulation complete.')}finally{button.disabled=false}}
+function safe(fn){return async event=>{event?.preventDefault();if(busy)return;busy=true;const buttons=[...document.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);try{await fn(event)}catch(error){message(error.message,true)}finally{busy=false;buttons.forEach(b=>b.disabled=false);$('record').disabled=!$('series').options.length;$('undo').disabled=!current?.session?.events.length}}}
+$('series').addEventListener('change',winners);
+$('bracket-form').addEventListener('submit',safe(async()=>{const bracket={label:$('bracket-label').value.trim(),quarterfinals:Array.from({length:4},(_,i)=>[0,1].map(s=>$(`team-${i}-${s}`).value.trim()))};render(await api('/api/bracket',{bracket,replace_results:$('replace-results').checked}));await run()}));
+$('game-form').addEventListener('submit',safe(async()=>{render(await api('/api/game',{series:$('series').value,winner:$('winner').value,timestamp:new Date($('timestamp').value).toISOString()}));await run()}));
+$('undo').addEventListener('click',safe(async()=>{render(await api('/api/undo',{}));await run()}));$('simulate').addEventListener('click',safe(run));
+$('download').addEventListener('click',safe(async()=>{const session=await api('/api/session');const link=node('a');const url=URL.createObjectURL(new Blob([JSON.stringify(session,null,2)],{type:'application/json'}));link.href=url;link.download='tournament-session.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}));
+$('import-button').addEventListener('click',()=>$('import-file').click());$('import-file').addEventListener('change',safe(async e=>{const file=e.target.files[0];if(file){render(await api('/api/import',{session:JSON.parse(await file.text())}));await run()}e.target.value=''}));
+(async()=>{try{render(await api('/api/status'));if(current.session)await run()}catch(error){message(error.message,true)}})();
+</script></body></html>
