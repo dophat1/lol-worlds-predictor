@@ -1,0 +1,5 @@
+period,scope,matches,regional_available,global_fallback_matches,regional_coverage
+validation,all,19215,423,18792,0.022014051522248244
+validation,international,423,423,0,1.0
+validation,msi_and_worlds,423,423,0,1.0
+validation,worlds,269,269,0,1.0

@@ -1,0 +1,56 @@
+{
+  "global_features": [
+    "elo_diff"
+  ],
+  "regional_features": [
+    "local_elo_diff",
+    "pool_offset_diff"
+  ],
+  "validation_start": "2023-03-04T22:51:24+00:00",
+  "test_start": "2025-02-05T18:58:03+00:00",
+  "trained_through": "2025-02-05T18:49:52+00:00",
+  "validation_regional_training_games": 1047,
+  "final_regional_training_games": 1470,
+  "final_global_training_games": 76871,
+  "selected_regional_weight": 0.8,
+  "blend_weight_candidates": [
+    0.0,
+    0.1,
+    0.2,
+    0.30000000000000004,
+    0.4,
+    0.5,
+    0.6000000000000001,
+    0.7000000000000001,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "selection_objective": "full-scope international validation log loss; ties prefer lower regional weight",
+  "fixed_settings": {
+    "C": 1.0,
+    "fit_intercept": false,
+    "mirrored_training": true,
+    "scaler_with_mean": false
+  },
+  "scope": [
+    "MSI",
+    "WLDs",
+    "FST"
+  ],
+  "fallback": "global logistic outside international scope or when regional features are unavailable",
+  "evaluation": "online Elo state, fixed logistic coefficients during each evaluation period",
+  "test_status": "previously inspected development period; not untouched final evaluation",
+  "limitations": [
+    "league roles are not year-specific",
+    "exact team names and potentially stale domestic homes",
+    "no roster features",
+    "no frozen pre-tournament forecast"
+  ],
+  "sklearn_version": "1.9.1",
+  "input_sha256": {
+    "calibrated_elo_features_all_years.csv": "fdcb851052cb39678f8d127e0d3ef475295f70b27018ddf19df84d59dad6545c",
+    "elo_features_all_years.csv": "e7da247fc82e200493e9c9bffe3388e5d83aabcd3929a68928cdc784342d6160",
+    "chronological_splits.csv": "424ef6810c3f0221fdf68c837dfa975473883b4610ab92f13d364929d64f2bdc"
+  }
+}

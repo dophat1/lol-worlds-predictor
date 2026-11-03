@@ -1,0 +1,5 @@
+scope,total_matches,both_homes_known,regional_available,fallback_matches,regional_coverage
+all,19204,7431,7431,11773,0.3869506352843158
+international,390,390,390,0,1.0
+msi_and_worlds,310,310,310,0,1.0
+worlds,159,159,159,0,1.0

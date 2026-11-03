@@ -1,0 +1,18 @@
+{
+  "test_start": "2025-02-05T18:58:03+00:00",
+  "test_end": "2026-10-26T21:54:37+00:00",
+  "test_matches": 19204,
+  "boundary_source": "results/baseline/chronological_splits.csv",
+  "local_initial_elo": 1500.0,
+  "local_k": 24.0,
+  "local_scale": 400.0,
+  "region_k": 12.0,
+  "region_scale": 400.0,
+  "offset_initial_value": 0.0,
+  "common_subset": "both homes known and both pre-match local ratings finite",
+  "fallback": "global Elo whenever the common-subset condition is false",
+  "evaluation": "online Elo; all equal-timestamp predictions precede state updates",
+  "test_status": "previously inspected; development evidence, not untouched final evaluation",
+  "classification_limitation": "league-wide mapping, not year-specific roles",
+  "identity_limitation": "exact team names; latest earlier domestic home may be stale"
+}
