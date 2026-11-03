@@ -163,11 +163,13 @@ class Predictor:
         if not 0 <= finite(self.regional_weight, "Blend weight") <= 1:
             raise ValueError("Blend weight must be between zero and one.")
 
-    def predict(self, state, a, b):
+    def predict(self, state, a, b, *, use_international_model=True):
         if a == b or a not in state.global_ratings or b not in state.global_ratings:
             raise ValueError("Choose distinct teams present in the snapshot.")
+        if type(use_international_model) is not bool:
+            raise ValueError("International-model eligibility must be boolean.")
         global_probability = sigmoid(self.global_coefficient * (state.global_ratings[a] - state.global_ratings[b]))
-        features = state.regional_features(a, b)
+        features = state.regional_features(a, b) if use_international_model else None
         regional = sigmoid(sum(c * x for c, x in zip(self.regional_coefficients, features))) if features else None
         probability = global_probability if regional is None else (1 - self.regional_weight) * global_probability + self.regional_weight * regional
         return {"probability_a": probability, "global_probability_a": global_probability,

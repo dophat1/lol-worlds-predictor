@@ -6,12 +6,24 @@ import argparse
 import copy
 import json
 import os
+import socket
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from uuid import uuid4
 
 from .prediction import RatingState, demo_artifact, load_artifact
 from .tournament import add_result, new_session, replay_session, simulate
+
+
+class LocalHTTPServer(HTTPServer):
+    """Do not let demo and real-model servers share one Windows address."""
+
+    allow_reuse_address = False
+
+    def server_bind(self):
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
 
 
 class TournamentService:
@@ -127,7 +139,7 @@ def main():
         if args.demo and service.session is None:
             teams = list(artifact["state"]["global_ratings"])
             service.save(new_session(artifact, {"label": "Hypothetical equal-strength demonstration", "quarterfinals": [teams[i:i+2] for i in range(0, 8, 2)]}))
-        server = HTTPServer(("127.0.0.1", args.port), handler_for(service))
+        server = LocalHTTPServer(("127.0.0.1", args.port), handler_for(service))
     except (ValueError, KeyError, OSError) as exc:
         parser.exit(1, f"Cannot start simulator: {exc}\n")
     print(f"Local simulator: http://127.0.0.1:{server.server_port} (Ctrl+C to stop)", flush=True)

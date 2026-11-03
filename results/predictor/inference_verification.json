@@ -1,0 +1,18 @@
+{
+  "verified_at_utc": "2026-11-03T16:03:01.730507+00:00",
+  "purpose": "Inference equivalence check, not a predictive-performance evaluation or actual match record.",
+  "artifact_sha256": "67e005dc1f8cc9bf2fc3ad7987a80a4994f12f3605f15ac8faad66735eb90996",
+  "model_bundle_sha256": "3bead10f590ee5c92cf17586068a08e58c3183da7f8272321e0c96356e8512b9",
+  "cutoff_exclusive": "2026-10-27T00:00:00+00:00",
+  "model_trained_through": "2025-02-05T18:49:52+00:00",
+  "matchup_queries_checked": 144,
+  "scopes_checked": [
+    "international_blend",
+    "global_logistic_only"
+  ],
+  "regional_queries": 22,
+  "fallback_queries": 122,
+  "max_absolute_probability_error": 2.220446049250313e-16,
+  "result": "passed",
+  "new_model_training": false
+}

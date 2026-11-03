@@ -18,6 +18,7 @@
   <h1>Every path to the title.</h1>
   <p class="muted">Set an eight-team bracket, simulate best-of-five series, and update the outlook as actual games finish.</p>
   <div id="notice" class="notice">Loading model snapshot…</div>
+  <p id="scenario-assumptions" class="muted hidden"></p>
   <div class="metrics"><div><strong>8 teams</strong>fixed knockout bracket</div><div><strong>Best of 5</strong>every series</div><div><strong id="actual-count">0</strong>actual games recorded</div></div>
   <div id="message" class="status" role="status" aria-live="polite"></div>
   <div class="grid">
@@ -41,7 +42,7 @@
     <section class="card wide"><h2>Title chances</h2><p class="muted">More simulations reduce sampling noise, not uncertainty in the underlying model.</p><div class="table-wrap"><table><thead><tr><th>Team</th><th class="num">Reach semifinal</th><th class="num">Reach final</th><th class="num">Win title</th><th class="num">MC s.e. (pp)</th></tr></thead><tbody id="chances"><tr><td colspan="5">No simulation yet.</td></tr></tbody></table></div><p id="coverage" class="muted"></p>
     </section>
     <section class="card wide"><h2>Bracket progress</h2><div class="table-wrap"><table><thead><tr><th>Series</th><th>Matchup</th><th>Actual score</th><th>Outlook</th></tr></thead><tbody id="progress"></tbody></table></div></section>
-  </div><footer>Local research prototype. Brackets and results are user supplied. No official participants, draw rules, or tournament identities are inferred. All rounds use the stated best-of-five assumption.</footer>
+  </div><footer>Local research prototype. Brackets are supplied or explicitly labeled assumptions; actual results are user supplied. No official participants, draw rules, or tournament identities are inferred. All rounds use the stated best-of-five assumption.</footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);let current=null,busy=false;
@@ -53,6 +54,7 @@ function localInput(date){return new Date(date.getTime()-date.getTimezoneOffset(
 for(let i=0;i<4;i++){const box=node('div',undefined,'pair');box.append(node('h3',`Quarterfinal ${i+1}`));for(let side=0;side<2;side++){const id=`team-${i}-${side}`,label=node('label',side===0?'Team A':'Team B');label.htmlFor=id;const input=node('input');input.id=id;input.setAttribute('list','team-options');input.required=true;input.placeholder='Choose a team from the snapshot';box.append(label,input)}$('quarterfinals').append(box)}
 function winners(){const found=current?.series.find(s=>s.series===$('series').value);$('winner').replaceChildren(node('option','Choose the actual game winner'));$('winner').options[0].value='';for(const team of found?.teams||[]){const option=node('option',team);option.value=team;$('winner').append(option)}}
 function render(data){current=data;const demo=data.kind==='hypothetical_demo';$('notice').textContent=demo?'Hypothetical demonstration: eight synthetic equal-strength teams. These are illustrative Elo probabilities, not predictions from the trained research model.':'Loaded trained research model. Supply the eight teams and quarterfinal bracket; no official bracket is assumed.';
+  const assumptions=data.session?.bracket?.assumptions;$('scenario-assumptions').textContent=assumptions||'';$('scenario-assumptions').className='muted'+(assumptions?'':' hidden');
   $('actual-count').textContent=data.session?.events.length||0;$('team-options').replaceChildren(...data.teams.map(t=>{const o=node('option');o.value=t;return o}));
   if(data.session){$('bracket-label').value=data.session.bracket.label;data.session.bracket.quarterfinals.forEach((pair,i)=>pair.forEach((team,s)=>{$(`team-${i}-${s}`).value=team}))}
   $('replace-results').checked=false;const priorSeries=$('series').value;$('series').replaceChildren();for(const s of data.series.filter(s=>s.teams&&!s.winner)){const o=node('option',`${s.series} · ${s.teams[0]} ${s.score[0]}–${s.score[1]} ${s.teams[1]}`);o.value=s.series;$('series').append(o)}if([...$('series').options].some(o=>o.value===priorSeries))$('series').value=priorSeries;winners();$('record').disabled=!$('series').options.length;$('undo').disabled=!data.session?.events.length;

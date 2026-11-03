@@ -2,21 +2,9 @@
 
 Notebooks remain the analysis and data-preparation workflow. The simulator is separate Python code plus a local browser interface, using an exported model and a versioned rating-state snapshot.
 
-## Try the hypothetical demonstration
-
-From the project root, after installing `requirements.txt`:
-
-```powershell
-.\.venv\Scripts\python.exe -m src.simulator_app --demo
-```
-
-Open **http://127.0.0.1:8501**. No additional Python dependencies are required beyond the existing environment. Stop the server with Ctrl+C.
-
-The demo uses eight explicitly synthetic, equal-strength teams and illustrative Elo probabilities. It is not the trained model and makes no claim about actual participants or matches. Its fixed cutoff is also illustrative. The initial title chances should be near 12.5% per team, with sampling variation; this is a symmetry check, not an evaluation result.
-
 ## Use the trained model
 
-First run notebooks 01-04 and 06 to generate consistent model and feature files. These generated files are ignored by Git, so a fresh clone needs the source data and notebook outputs before trained-model export can run.
+First run notebooks 01-05 to generate consistent model and feature files. These generated files are ignored by Git, so a fresh clone needs the source data and notebook outputs before trained-model export can run.
 
 Export state using a timezone-aware **exclusive cutoff**:
 
@@ -38,9 +26,11 @@ The exporter:
 
 The app displays the cutoff, model training endpoint, and last source-game timestamp. A cutoff later than available data does not create missing games; inspect that last-data timestamp before treating the package as up to date.
 
+Sessions may use real source-team identities with an explicitly assumed bracket. Label these as current-data what-if scenarios and inspect the displayed cutoff/selection assumptions; real data does not make an assumed bracket official. Saved sessions are local generated files, not included in a fresh clone.
+
 ## Set the bracket
 
-Enter a scenario label and eight distinct team identities present in the snapshot. Use a label that identifies hypothetical scenarios clearly. No real participants are filled in automatically.
+Enter a scenario label and eight distinct team identities present in the snapshot. Use a label that identifies hypothetical scenarios clearly. A new session starts empty; a resumed session restores its saved teams and pairings.
 
 The ordered quarterfinal pairs define the paths:
 
@@ -112,8 +102,22 @@ Tests cover series probabilities against binomial calculations, partial-score co
 
 The current real-data export was also checked against every saved final global/local rating, latest home, pool offset, and associated domestic/calibration count. A second earlier cutoff was exported to check that state is reconstructed from a prefix rather than final ratings.
 
+## Optional hypothetical demonstration
+
+From the project root, after installing `requirements.txt`:
+
+```powershell
+.\.venv\Scripts\python.exe -m src.simulator_app --demo
+```
+
+Open **http://127.0.0.1:8501**. No additional Python dependencies are required beyond the existing environment. Stop the server with Ctrl+C.
+
+The demo uses eight explicitly synthetic, equal-strength teams and illustrative Elo probabilities. It is not the trained model and makes no claim about actual participants or matches. Its fixed cutoff is also illustrative. The initial title chances should be near 12.5% per team, with sampling variation; this is a symmetry check, not an evaluation result.
+
 ## Current scope
 
-This is a local research prototype bound to `127.0.0.1`, not a deployed public service. Public hosting, multi-user storage, and operational deployment remain separate work. Automated HTTP tests verify the API and persistence; visual browser verification was not completed because computer-use approval timed out.
+This is a local research prototype bound to `127.0.0.1`, not a deployed public service. Public hosting, multi-user storage, and operational deployment remain separate work. Automated HTTP tests verify the API and persistence. Visual browser verification and public deployment remain unfinished.
+
+Only one simulator may bind a port at a time. On Windows the server uses an exclusive socket, preventing a demo and a real-model process from silently sharing the same address. Stop the existing server before starting another on port 8501, or choose another `--port`.
 
 The model still has exact-name, roster, stale-home, competition-role, missing-data, and development-test limitations described in the main README. Neither simulation count nor a polished interface resolves those modeling limitations. Use a supplied bracket and cutoff before interpreting any real teams' title chances.

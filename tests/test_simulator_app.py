@@ -6,11 +6,10 @@ import json
 import tempfile
 import threading
 import unittest
-from http.server import HTTPServer
 from pathlib import Path
 
 from src.prediction import demo_artifact
-from src.simulator_app import TournamentService, handler_for
+from src.simulator_app import LocalHTTPServer, TournamentService, handler_for
 from src.tournament import new_session
 
 
@@ -22,7 +21,7 @@ class AppTests(unittest.TestCase):
         self.service = TournamentService(self.artifact,self.path)
         handler = handler_for(self.service)
         handler.log_message = lambda *args: None
-        self.server = HTTPServer(('127.0.0.1',0),handler)
+        self.server = LocalHTTPServer(('127.0.0.1',0),handler)
         self.thread = threading.Thread(target=self.server.serve_forever,daemon=True)
         self.thread.start()
 
@@ -87,6 +86,10 @@ class AppTests(unittest.TestCase):
         self.assertEqual(status,400,body)
         self.assertEqual(self.path.read_bytes(),before)
         self.assertEqual(self.service.session,session)
+
+    def test_another_server_cannot_claim_the_same_port(self):
+        with self.assertRaises(OSError):
+            LocalHTTPServer(('127.0.0.1', self.server.server_port), handler_for(self.service))
 
 
 if __name__=='__main__':

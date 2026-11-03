@@ -1,41 +1,39 @@
 {
-  "completed_at_utc": "2026-11-03T11:22:40.257794+00:00",
+  "completed_at_utc": "2026-11-03T17:25:44.105821+00:00",
   "notebooks": [
     {
       "notebook": "01_data_exploration.ipynb",
       "executed_cells": 16,
-      "seconds": 19.62,
+      "seconds": 19.38,
       "status": "passed"
     },
     {
       "notebook": "02_elo_feature_engineering.ipynb",
       "executed_cells": 11,
-      "seconds": 73.97,
+      "seconds": 7.63,
       "status": "passed"
     },
     {
       "notebook": "03_baseline_model.ipynb",
       "executed_cells": 11,
-      "seconds": 10.06,
+      "seconds": 10.07,
       "status": "passed"
     },
     {
       "notebook": "04_international_evaluation.ipynb",
-      "executed_cells": 25,
-      "seconds": 442.2,
+      "executed_cells": 24,
+      "seconds": 26.28,
       "status": "passed"
     },
     {
-      "notebook": "05_worlds_simulation.ipynb",
-      "executed_cells": 14,
-      "seconds": 4.34,
-      "status": "passed"
-    },
-    {
-      "notebook": "06_international_model.ipynb",
+      "notebook": "05_international_model.ipynb",
       "executed_cells": 7,
-      "seconds": 11.33,
+      "seconds": 12.33,
       "status": "passed"
     }
-  ]
+  ],
+  "preservation_check": {
+    "files_checked": 31,
+    "changed_files": []
+  }
 }
