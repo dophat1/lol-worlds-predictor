@@ -1,5 +1,5 @@
 {
-  "completed_at_utc": "2026-11-03T17:25:44.105821+00:00",
+  "completed_at_utc": "2026-11-03T18:47:10.637073+00:00",
   "notebooks": [
     {
       "notebook": "01_data_exploration.ipynb",
@@ -30,10 +30,17 @@
       "executed_cells": 7,
       "seconds": 12.33,
       "status": "passed"
+    },
+    {
+      "notebook": "06_model_evaluation.ipynb",
+      "executed_cells": 8,
+      "seconds": 10.99,
+      "status": "passed"
     }
   ],
   "preservation_check": {
     "files_checked": 31,
     "changed_files": []
-  }
+  },
+  "execution_note": "Notebooks 01-05 retain their recorded execution; notebook 06 was executed separately after adding score-only evaluation."
 }

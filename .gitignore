@@ -8,3 +8,6 @@ models/
 # Personal reading and interview notes stay local.
 docs/PROJECT_INTERVIEW_*.txt
 docs/private/
+
+# Generated evaluation reports stay local.
+results/evaluation/

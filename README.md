@@ -10,6 +10,7 @@ A rating-based League of Legends predictor and local quarterfinal-to-title simul
 | --- | --- |
 | Run the real-data tournament simulator | [Simulator instructions](docs/simulator.md) |
 | Query a game or series without the browser | [Standalone predictor](docs/predictor.md) |
+| Compare baseline and newer models | [Evaluation guide](docs/evaluation.md) / [Evaluation notebook](notebooks/06_model_evaluation.ipynb) |
 | Inspect model selection and results | [Model metadata](results/international_model/model_metadata.json), [validation search](results/international_model/validation_blend_grid.csv), [test metrics](results/international_model/test_metrics.csv) |
 
 ## Setup
@@ -40,8 +41,9 @@ Run the active analysis notebooks top to bottom in this order:
 | 03 | [Baseline model](notebooks/03_baseline_model.ipynb) | Define timestamp splits and evaluate global Elo against Elo-only logistic regression. |
 | 04 | [International evaluation](notebooks/04_international_evaluation.ipynb) | Classify competitions, track domestic homes/local Elo, learn pool offsets, and compare aligned predictions. |
 | 05 | [International model](notebooks/05_international_model.ipynb) | Fit regional logistic regression, select a blend on validation, and save the final model/evaluation. |
+| 06 | [Model evaluation](notebooks/06_model_evaluation.ipynb) | Independently score fixed predictions, compare coverage/calibration, and report paired uncertainty without retraining. |
 
-Run **01 -> 02 -> 03 -> 04 -> 05**. Prediction and tournament simulation live in `src/`, keeping the notebooks focused on analysis and preparation.
+Run **01 -> 02 -> 03 -> 04 -> 05** for preparation/training, then **06** for comparison reports. Prediction and tournament simulation live in `src/`, keeping notebooks focused on analysis and explanation.
 
 **A fresh clone does not contain the full dataset or generated models.** The saved all-year run used ten CSVs covering 2017-2026; only a legacy 2024 raw CSV is tracked. Obtain the missing inputs separately. There is no downloader. Rerunning notebooks overwrites generated artifacts and may change split boundaries if inputs change.
 
@@ -119,15 +121,25 @@ Lower log loss is better. These are game-level scores, not tournament-winner acc
 
 ## Validation and project layout
 
+Run the score-only evaluation process independently:
+
+```powershell
+.\.venv\Scripts\python.exe -m src.evaluate --root .
+```
+
+It compares constant 50%, global Elo, global logistic, regional logistic, and the existing blend on identical validation/development-test games. Generated evaluation reports stay local and are ignored by Git. Versioned reports include metrics, coverage, calibration, time segments, and paired UTC-week bootstrap intervals. The blend's validation selection reuse and the inspected test status are explicit. See [evaluation details](docs/evaluation.md); this process does not train models or create frozen tournament backtests.
+
+Run automated checks:
+
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-The current 22 tests cover probability arithmetic, symmetry, scope/fallback, cutoff rejection, timestamp isolation, series conditioning, fixed advancement, reproducibility, and actual-result replay/save/undo. [Inference verification](results/predictor/inference_verification.json) checks 144 matchup queries in both scopes against the saved scikit-learn pipelines. Passing mechanics tests is not proof of forecasting accuracy.
+The current 46 tests cover prediction/simulation behavior, evaluation alignment and timing, metric definitions, paired resampling, immutable reports, and Windows report permissions. [Inference verification](results/predictor/inference_verification.json) checks 144 matchup queries in both scopes against the saved scikit-learn pipelines. Passing mechanics tests is not proof of forecasting accuracy.
 
 ```text
-notebooks/             Analysis and preparation (01 through 05)
-src/                   Prediction, state export, tournament engine, local app
+notebooks/             Preparation/training (01-05) and evaluation (06)
+src/                   Prediction, state export, evaluation, tournament engine, local app
 web/                   Browser interface
 tests/                 Automated tests
 docs/                  Public predictor and simulator usage guides
@@ -137,7 +149,7 @@ data/processed/        Generated histories/audits/sessions; ignored
 models/                Generated model and state packages; ignored
 ```
 
-The [execution record](results/execution/notebook_run.json) lists the five current notebooks and their 69 working code cells. The obsolete simulation illustration and legacy generated artifacts have been removed. Source data, current models, and saved evaluation results remain available.
+The [execution record](results/execution/notebook_run.json) lists six notebooks and 77 working code cells, with the separate evaluation execution noted. The obsolete simulation illustration and legacy generated artifacts have been removed. Source data, current models, and saved evaluation results remain available.
 
 ## Remaining work
 

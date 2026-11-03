@@ -48,7 +48,7 @@ Run:
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-The current suite contains 22 mechanics, prediction-contract, and HTTP/session tests. The standalone prediction checks cover symmetry, direct logistic/blend arithmetic, global-only eligibility, missing-feature fallback, score conditioning without state mutation, terminal/invalid scores, serialization, and invalid identities/cutoffs.
+The suite includes prediction-contract, simulation, HTTP/session, and separate model-evaluation tests. The standalone prediction checks cover symmetry, direct logistic/blend arithmetic, global-only eligibility, missing-feature fallback, score conditioning without state mutation, terminal/invalid scores, serialization, and invalid identities/cutoffs.
 
 The [saved inference verification](../results/predictor/inference_verification.json) compares 144 matchup queries in both international and global-only modes against the original saved scikit-learn pipelines. Both known-region and fallback branches were exercised; the maximum absolute difference was approximately `2.22e-16`. These are mathematical equivalence checks, not actual match records or new predictive-performance results.
 
@@ -56,4 +56,4 @@ The [saved inference verification](../results/predictor/inference_verification.j
 
 V1 provides usable game/series inference and a local fixed-bracket simulator with auditable cutoffs and actual-result replay. It is not a declaration that every research milestone is complete. Historical gold/objective features, periodic logistic retraining, robust year-specific competition/identity review, untouched tournament backtesting, and public deployment remain unfinished.
 
-The current exported model was fitted through February 5, 2025; its state package includes source games through October 26, 2026. This reflects the fixed-coefficient evaluation design. Choosing a newer state cutoff does not retrain the coefficients or turn this package into a historical pre-quarterfinal forecast.
+The current exported model was fitted through February 5, 2025; its state package includes source games through October 26, 2026. This reflects the fixed-coefficient evaluation design. Choosing a newer state cutoff does not retrain the coefficients or turn this package into a historical pre-quarterfinal forecast. The [separate evaluation process](evaluation.md) compares fixed predictions and reports uncertainty without changing this model.
